@@ -1,50 +1,71 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, RefreshCw, Quote } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
 import Markdown from 'react-markdown';
 import { useLanguage } from '../LanguageContext';
-
-const getAiClient = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is missing");
-  }
-  return new GoogleGenAI({ apiKey });
-};
 
 export default function MindfulMoments() {
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<'affirmation' | 'tip' | 'meditation'>('affirmation');
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  const getStaticContent = (contentType: typeof type) => {
+    const collections = {
+      ru: {
+        affirmation: [
+          "Я спокоен, центрирован и нахожусь в мире с самим собой.",
+          "Сегодня я выбираю покой вместо хаоса и осознанность вместо спешки.",
+          "Моё дыхание глубокое, мой ум чист, моё сердце открыто.",
+          "Я доверяю процессу жизни и отпускаю то, что не могу контролировать."
+        ],
+        tip: [
+          "Попробуйте правило 5-4-3-2-1: назовите 5 предметов, которые видите, 4 звука, которые слышите, и так далее.",
+          "Сделайте паузу и почувствуйте вес своих стоп на полу в течение 30 секунд.",
+          "Выключите уведомления на телефоне на ближайшие 15 минут.",
+          "Слегка опустите плечи и расслабьте челюсть прямо сейчас."
+        ],
+        meditation: [
+          "Представьте себя на берегу тихого озера. Вода зеркально гладкая. С каждым вдохом вы чувствуете свежесть, с каждым выдохом — как рябь ваших мыслей затихает.",
+          "Представьте теплый золотистый свет, начинающийся в ваших стопах и медленно поднимающийся вверх, расслабляющий каждую мышцу вашего тела.",
+          "Визуализируйте облако. Поместите в него вашу главную заботу сегодня и смотрите, как ветер мягко уносит его за горизонт."
+        ]
+      },
+      en: {
+        affirmation: [
+          "I am calm, centered, and at peace with myself.",
+          "Today I choose peace over chaos and mindfulness over hurry.",
+          "My breath is deep, my mind is clear, my heart is open.",
+          "I trust the process of life and let go of what I cannot control."
+        ],
+        tip: [
+          "Try the 5-4-3-2-1 rule: name 5 things you can see, 4 sounds you can hear, and so on.",
+          "Pause and feel the weight of your feet on the floor for 30 seconds.",
+          "Turn off phone notifications for the next 15 minutes.",
+          "Gently drop your shoulders and relax your jaw right now."
+        ],
+        meditation: [
+          "Imagine yourself by a still lake. The water is mirror-smooth. With each breath, feel the freshness; with each exhale, see the ripples of your thoughts settle.",
+          "Imagine a warm golden light starting at your feet and slowly moving up, relaxing every muscle in your body.",
+          "Visualize a cloud. Place your main worry today inside it and watch as the wind gently carries it over the horizon."
+        ]
+      }
+    };
+
+    const currentLang = language as 'ru' | 'en';
+    const list = collections[currentLang][contentType];
+    return list[Math.floor(Math.random() * list.length)];
+  };
 
   const generateContent = async (contentType: typeof type) => {
     setLoading(true);
     setType(contentType);
-    try {
-      const ai = getAiClient();
-      const prompt = {
-        affirmation: t.aiAffirmationPrompt,
-        tip: t.aiTipPrompt,
-        meditation: t.aiMeditationPrompt
-      }[contentType];
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          systemInstruction: t.aiSystemInstruction,
-        }
-      });
-
-      setContent(response.text || t.peaceJourney);
-    } catch (error) {
-      console.error("Gemini Error:", error);
-      setContent(t.breathBridge);
-    } finally {
+    
+    // Simulate a brief loading state for better UX
+    setTimeout(() => {
+      setContent(getStaticContent(contentType));
       setLoading(false);
-    }
+    }, 600);
   };
 
   return (

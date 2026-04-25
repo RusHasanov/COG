@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Wind, Music, Sparkles, BookOpen, Home, Settings, User, Languages, Download } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
 import BreathingExercise from './components/BreathingExercise';
 import SoundscapePlayer from './components/SoundscapePlayer';
 import MindfulMoments from './components/MindfulMoments';
@@ -179,27 +178,8 @@ export default function App() {
 }
 
 function HomeHero({ onStart }: { onStart: () => void }) {
-  const [quote, setQuote] = React.useState<string | null>(null);
-  const { t, language } = useLanguage();
-
-  React.useEffect(() => {
-    const fetchQuote = async () => {
-      try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-        const response = await ai.models.generateContent({
-          model: "gemini-3-flash-preview",
-          contents: t.aiQuotePrompt,
-          config: {
-            systemInstruction: t.aiQuoteInstruction,
-          }
-        });
-        setQuote(response.text || t.peaceJourney);
-      } catch (e) {
-        setQuote(t.breathBridge);
-      }
-    };
-    fetchQuote();
-  }, [language, t]);
+  const { t } = useLanguage();
+  const quote = t.breathBridge;
 
   return (
     <div className="px-6 py-12 flex flex-col items-center justify-center min-h-[70vh] text-center">
